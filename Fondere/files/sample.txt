@@ -1,0 +1,41 @@
+Amazon, already America’s fifth-largest grocer, is attempting to get things to you even faster. Yesterday, the online behemoth announced that it would cut Prime delivery times in half for select customers, down to one day. We haven’t been told how it will achieve that, but given the hiring spree it’s been on for its own drone delivery technology—a 30-minute service called Prime Air—you might think it will be happening in the skies.
+
+If that is the case, then Amazon better hurry up—because it seems like Google’s going to beat them to it. This week, Wing Aviation, a subsidiary of Google’s parent company, Alphabet, announced on Medium that it was the first to receive approval from the Federal Aviation Administration (FAA) to use drones as a commercial operation, delivering from local businesses to homes.
+
+“Wing demonstrated that its operations met the FAA’s rigorous safety requirements to qualify for an air carrier certificate,” the agency wrote in a press release. “This is based on extensive data and documentation, as well as thousands of safe flights conducted in Australia over the past several years.”
+
+What does this mean for Amazon’s Prime Air? That company can continue to run private demonstrations, but still isn’t permitted for commercial drone delivery. Alphabet, however, is now approved by the FAA to use regulated airspace. It can begin to offer a commercial service that delivers goods from businesses to homes.
+
+As AgFunder News reports, Wing has been developing drone technology for several years, and piloting it—pun intended—in areas that might otherwise be challenging to reach on wheels. The company completed its first deliveries in 2014, in rural Queensland, Australia, where a drone delivered a first-aid kit, candy bars, dog treats, and water to remote farmers.
+
+Then, in September 2016, the company delivered Chipotle to students at Virginia Tech, in Blacksburg, Virginia, with a drone that lowered burritos with a winch. It was then the largest and longest drone demonstration in the U.S., and one of the first public deliveries of perishable, time- and temperature-dependent food—essentially, disrupting the cold chain.
+
+Two years later, the company made another aerial delivery in Blacksburg, believed to be the first-ever home drone delivery, of ice cream and a Popsicle. “Instead of landing and dropping off its cargo on the ground or a rooftop, the Wing drone hovers over a delivery site, its engines buzzing in a high-pitched whine, and lowers the items on a thin tether,” Bloomberg’s Alan Levin wrote. “That way, it avoids the potential hazards of striking people or objects on the ground.”
+
+For a long time, drones were expensive and difficult to operate, making them the purview of the military and the home hobbyist. That changed, Levin has written, with new technology around computing power, motion sensors, and battery charging, that kicked off an explosion in popularity. Millions are sold worldwide every year.
+
+In 2017, 48 percent of commercially registered drones were used for real estate and aerial photography, and 17 percent were used for agricultural purposes like a farmer checking thousands of acres of grain for crop rot. According to FAA data Levin cites, none of those drones were registered for food deliveries.
+
+So what’s next? In its Medium post, Wing says that the commercial license could allow them to get into other stuff, beyond Chipotle and ice cream—like, for instance, getting groceries or medicine to people with limited mobility. The company is hoping to launch a delivery trial, ferrying stuff from businesses in Blacksburg and nearby Christianburg, later this year.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+I had not watched a single video until The Verge began publishing multiple articles about him [PewDiePie]. I was initially under the impression that his videos would turn out similar to the horrific Alex Jones show. However, after watching a few videos, I found them to be less sensational than described in various articles. It’s incredibly obvious to anyone with a brain that these interjections aren’t supporting racism and are, instead, taking cracks at Vox media for labeling him as a racist.
+
+When I looked back on the past evidence against him, it honestly said more about the poor journalism surrounding the situation than it did of his behavior. For example, he recommended an anime reviewer’s channel, along with other channels, because he liked one of their anime reviews. That channel happened to have pro-white supremacy videos buried in his history. Was that really a “secret plan” to subscribe kids to Nazi ideals? Obviously not! It seemed like an obvious and understandable oversight. No one with a life goes through every single video of a channel before recommending it. (…)
+
+The other accusation against him, regarding fiverr comes off as a big mistake on his, but I also understand why PewDiePie felt it was a good way to highlight his point. His point being that people on fiverr will go to extreme lengths to provide a service, even if it means acting immorally. In response to these issues, he issued an apology and deleted the content, something you have to twist tech company’s arm to get.
+
+Yet, the issue seems to arise every time his channel is listed in article. I’m probably a good example of how frequently it’s mentioned because I had no interest in YouTube culture, but checked it out because it was mentioned so often I wondered how someone so supposedly racists and carefree could generate so many subscribers. As it turned out, the articles were deceptive and sensationalist to my disappointment.

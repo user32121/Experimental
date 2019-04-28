@@ -36,6 +36,7 @@
             this.textOutput = new System.Windows.Forms.TextBox();
             this.textPrevChar = new System.Windows.Forms.TextBox();
             this.buttonGenerate = new System.Windows.Forms.Button();
+            this.buttonAuto = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // textSample
@@ -46,21 +47,21 @@
             this.textSample.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.textSample.Size = new System.Drawing.Size(300, 425);
             this.textSample.TabIndex = 0;
-            this.textSample.Text = "tast satstsas";
+            this.textSample.Text = "test setstses";
             // 
             // buttonBuild
             // 
-            this.buttonBuild.Location = new System.Drawing.Point(319, 12);
+            this.buttonBuild.Location = new System.Drawing.Point(319, 42);
             this.buttonBuild.Name = "buttonBuild";
             this.buttonBuild.Size = new System.Drawing.Size(75, 23);
-            this.buttonBuild.TabIndex = 1;
+            this.buttonBuild.TabIndex = 2;
             this.buttonBuild.Text = "rebuild";
             this.buttonBuild.UseVisualStyleBackColor = true;
             this.buttonBuild.Click += new System.EventHandler(this.ButtonBuild_Click);
             // 
             // textMaxChar
             // 
-            this.textMaxChar.Location = new System.Drawing.Point(319, 41);
+            this.textMaxChar.Location = new System.Drawing.Point(319, 71);
             this.textMaxChar.Name = "textMaxChar";
             this.textMaxChar.Size = new System.Drawing.Size(50, 20);
             this.textMaxChar.TabIndex = 3;
@@ -70,7 +71,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(375, 44);
+            this.label1.Location = new System.Drawing.Point(375, 74);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(79, 65);
             this.label1.TabIndex = 2;
@@ -78,7 +79,7 @@
             // 
             // textRngRange
             // 
-            this.textRngRange.Location = new System.Drawing.Point(319, 67);
+            this.textRngRange.Location = new System.Drawing.Point(319, 97);
             this.textRngRange.Name = "textRngRange";
             this.textRngRange.Size = new System.Drawing.Size(50, 20);
             this.textRngRange.TabIndex = 3;
@@ -97,7 +98,7 @@
             // 
             // textPrevChar
             // 
-            this.textPrevChar.Location = new System.Drawing.Point(319, 94);
+            this.textPrevChar.Location = new System.Drawing.Point(319, 124);
             this.textPrevChar.Name = "textPrevChar";
             this.textPrevChar.Size = new System.Drawing.Size(50, 20);
             this.textPrevChar.TabIndex = 3;
@@ -106,7 +107,7 @@
             // 
             // buttonGenerate
             // 
-            this.buttonGenerate.Location = new System.Drawing.Point(401, 13);
+            this.buttonGenerate.Location = new System.Drawing.Point(401, 43);
             this.buttonGenerate.Name = "buttonGenerate";
             this.buttonGenerate.Size = new System.Drawing.Size(75, 23);
             this.buttonGenerate.TabIndex = 2;
@@ -114,16 +115,27 @@
             this.buttonGenerate.UseVisualStyleBackColor = true;
             this.buttonGenerate.Click += new System.EventHandler(this.ButtonGenerate_Click);
             // 
+            // buttonAuto
+            // 
+            this.buttonAuto.Location = new System.Drawing.Point(319, 13);
+            this.buttonAuto.Name = "buttonAuto";
+            this.buttonAuto.Size = new System.Drawing.Size(75, 23);
+            this.buttonAuto.TabIndex = 1;
+            this.buttonAuto.Text = "auto";
+            this.buttonAuto.UseVisualStyleBackColor = true;
+            this.buttonAuto.Click += new System.EventHandler(this.ButtonAuto_Click);
+            // 
             // Fondere
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.buttonAuto);
+            this.Controls.Add(this.buttonBuild);
             this.Controls.Add(this.buttonGenerate);
             this.Controls.Add(this.textOutput);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textMaxChar);
-            this.Controls.Add(this.buttonBuild);
             this.Controls.Add(this.textSample);
             this.Controls.Add(this.textRngRange);
             this.Controls.Add(this.textPrevChar);
@@ -145,6 +157,7 @@
         private System.Windows.Forms.TextBox textOutput;
         private System.Windows.Forms.TextBox textPrevChar;
         private System.Windows.Forms.Button buttonGenerate;
+        private System.Windows.Forms.Button buttonAuto;
     }
 }
 

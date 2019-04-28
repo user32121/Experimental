@@ -30,6 +30,12 @@ namespace Experimental
             TextPrevChar_TextChanged(this, EventArgs.Empty);
         }
 
+        private void ButtonAuto_Click(object sender, EventArgs e)
+        {
+            ButtonBuild_Click(this, EventArgs.Empty);
+            ButtonGenerate_Click(this, EventArgs.Empty);
+        }
+
         private void ButtonBuild_Click(object sender, EventArgs e)
         {
             //refreshes the trie
@@ -133,11 +139,19 @@ namespace Experimental
                     for (int i = Math.Max(0, word.Length - prevChars); i < word.Length; i++)
                     {
                         //finds word in letter path
+                        bool noLetter = false;
                         while (!(trie[index].letter == word[i]))
                             if (trie[index].nextNode != -1)
                                 index = trie[index].nextNode;
                             else
-                                index = 0;
+                            {
+                                if (noLetter)
+                                    break;
+                                else
+                                    index = 0;
+
+                                noLetter = true;
+                            }
 
                         index = trie[index].daughterNode;
                     }
@@ -166,9 +180,11 @@ namespace Experimental
                         if (topIndexes[i] != -1)
                             totalPass++;
 
+                    if (totalPass == 0)
+                        break;
+
                     word += trie[topIndexes[rng.Next(totalPass)]].letter;
                     index = 0;
-
                 }
 
                 //outputs anti words
