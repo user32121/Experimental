@@ -61,16 +61,16 @@ namespace ShapeFill
                 points[p] = new Vector((points[p].X * Math.Cos(radians) - points[p].Y * Math.Sin(radians)),
                     (points[p].X * Math.Sin(radians) + points[p].Y * Math.Cos(radians))) + center;
             }
-            FindCenter();
         }
 
         public Vector FindVelocity(int p)
         {
+            FindCenter();
             return new Vector(
                 (points[p].X - center.X) * Math.Cos(rVel) -
-                (points[p].Y - center.Y) * Math.Sin(rVel),
+                (points[p].Y - center.Y) * Math.Sin(rVel) - (points[p].X - center.X),
                 (points[p].X - center.X) * Math.Sin(rVel) +
-                (points[p].Y - center.Y) * Math.Cos(rVel)) +
+                (points[p].Y - center.Y) * Math.Cos(rVel) - (points[p].Y - center.Y)) +
                 tVel;
         }
     }

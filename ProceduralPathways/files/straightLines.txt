@@ -1,0 +1,13 @@
+L:gray,R:gray,U:gray,D:Gray,C:gray,B:Gray
+L:gray,R:gray,U:gray,D:Gray,C:gray,B:Gray
+L:gray,R:gray,U:gray,D:Gray,C:gray,B:Gray
+
+L:Lime,R:lime,U:gray,D:Gray,C:Lime,B:Gray
+L:Gray,R:Gray,U:lime,D:lime,C:lime,B:Gray
+L:blue,R:blue,U:gray,D:Gray,C:blue,B:Gray
+L:Gray,R:Gray,U:blue,D:blue,C:blue,B:Gray
+
+L:blue,R:blue,U:lime,D:lime,C:blue,B:Gray
+L:lime,R:lime,U:blue,D:blue,C:lime,B:Gray
+L:blue,R:blue,U:blue,D:blue,C:blue,B:Gray
+L:lime,R:lime,U:lime,D:lime,C:lime,B:Gray

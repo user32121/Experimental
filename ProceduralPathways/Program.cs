@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ShapeFill
+namespace ProceduralPathways
 {
     static class Program
     {
@@ -16,7 +16,7 @@ namespace ShapeFill
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new CollisionHv2());
+            Application.Run(new AdditionMethod());
         }
     }
 }

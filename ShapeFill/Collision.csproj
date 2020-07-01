@@ -47,6 +47,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CollisionHv2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CollisionHv2.Designer.cs">
+      <DependentUpon>CollisionHv2.cs</DependentUpon>
+    </Compile>
     <Compile Include="CollisionSv3r0.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -99,6 +105,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="CollisionHv2.resx">
+      <DependentUpon>CollisionHv2.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="CollisionSv3r0.resx">
       <DependentUpon>CollisionSv3r0.cs</DependentUpon>
     </EmbeddedResource>
