@@ -15,125 +15,172 @@ namespace ASCIIArt
 {
     public partial class ASCIIArt : Form
     {
+        //timing
         Stopwatch stopwatch = new Stopwatch();
+        bool loading;
 
+        //chars
+        byte[][,] chars = new byte[charMax][,];
+        Font drawingFont;
+        Bitmap charBmp;
+        Graphics charG;
+        const int charMin = 32;
+        const int charMax = 256;
+        Size targetSize;
+        int charWidth;
+
+        //image
         Bitmap bmp;
         string text;
-
-        bool imageChanged;
 
         public ASCIIArt()
         {
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ASCIIArt_Load(object sender, EventArgs e)
         {
-            stopwatch.Start();
+            //load font
+            FontFamily[] families = FontFamily.Families;
+            for (int i = 0; i < families.Length; i++)
+                if (String.Equals(families[i].Name, "consolas", StringComparison.OrdinalIgnoreCase))
+                    drawingFont = new Font(families[i], 8);
+            if (drawingFont == null)
+                throw new Exception("Could not find Consolas font");
+            textDisplay.Font = drawingFont;
+
+            LoadChars();
+        }
+
+        private void BtnOpen_Click(object sender, EventArgs e)
+        {
+            if (loading)
+                return;
+
+            stopwatch.Restart();
 
             if (openFileDialog1.ShowDialog() != DialogResult.OK)
                 return;
 
+            labelProgress.Text = "Rendering";
+            loading = true;
+
+            //open image
             bmp = (Bitmap)Image.FromStream(openFileDialog1.OpenFile());
-            BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
-            MemoryStream stream = new MemoryStream();
-            bmp.Save(stream, ImageFormat.Bmp);
-            byte[] image = stream.ToArray();
+            pictureDisplay.Image = bmp;
 
-            int bpp = 4;
-            switch (bmpData.PixelFormat)
-            {
-                case PixelFormat.Format24bppRgb:
-                    bpp = 3;
-                    break;
-                case PixelFormat.Format32bppArgb:
-                    break;
-                default:
-                    MessageBox.Show(bmpData.PixelFormat + " pixel format is not supported.\nUnexpected results may occur.");
-                    break;
-            }
-
+            //convert image to text
             text = "";
-            int pxlCount = 0;
-            int lineStart = image[10] + (image[11] << 8) + (image[12] << 16) + (image[13] << 24);
-            for (int i = lineStart; i < image.Length - bpp; i += bpp * 2)
+            progressBar1.Maximum = bmp.Height;
+            for (int y = 0; y + targetSize.Height < bmp.Height; y += targetSize.Height)
             {
-                //convert to text
-                switch ((int)Math.Round(Color.FromArgb(image[i + 2], image[i + 1], image[i]).GetBrightness() * 10))
+                for (int x = 0; x + targetSize.Width < bmp.Width; x += charWidth)
                 {
-                    case 0:
-                        text += "##";
-                        break;
-                    case 1:
-                        text += "$$";
-                        break;
-                    case 2:
-                        text += "%%";
-                        break;
-                    case 3:
-                        text += "EE";
-                        break;
-                    case 4:
-                        text += "||";
-                        break;
-                    case 5:
-                        text += "ww";
-                        break;
-                    case 6:
-                        text += "ii";
-                        break;
-                    case 7:
-                        text += "::";
-                        break;
-                    case 8:
-                        text += "--";
-                        break;
-                    case 9:
-                        text += "..";
-                        break;
-                    case 10:
-                        text += "  ";
-                        break;
-                }
-                //update display
-                if (stopwatch.ElapsedMilliseconds > 1000)
-                {
-                    Render();
-                    imageChanged = false;
-                    Application.DoEvents();
-                    if (imageChanged)
-                        return;
-                    stopwatch.Restart();
-                }
+                    int bestI = -1;
+                    int bestScore = int.MaxValue;  //lower score is better
+                    int score, dist;
 
-                pxlCount += 2;
-                if (pxlCount >= bmpData.Width)
-                {
-                    lineStart += bmpData.Stride * 2;
-                    pxlCount = 0;
-                    i = lineStart;
-                    text += "\n";
+                    for (int i = charMin; i < charMax; i++)
+                    {
+                        if (chars[i] == null)
+                            continue;
+
+                        score = 0;
+                        for (int x2 = 0; x2 < targetSize.Width; x2++)
+                            for (int y2 = 0; y2 < targetSize.Height; y2++)
+                            {
+                                dist = chars[i][x2, y2] - (int)(bmp.GetPixel(x + x2, y + y2).GetBrightness() * 256);
+                                score += dist * dist;
+                            }
+                        if (score < bestScore)
+                        {
+                            bestScore = score;
+                            bestI = i;
+                        }
+                    }
+                    text += (char)bestI;
+
+                    if (stopwatch.ElapsedMilliseconds > 1000)
+                    {
+                        progressBar1.Value = y;
+                        Render();
+                        Application.DoEvents();
+                        stopwatch.Restart();
+                    }
                 }
+                text += '\n';
             }
-            //unlock
-            bmp.UnlockBits(bmpData);
-
-            //reflect image/text (reverse order of lines)
-            text = string.Join("\n", text.Split('\n').Reverse());
-
-            imageChanged = true;
-
             Render();
+            progressBar1.Value = bmp.Height;
+            labelProgress.Text = "Done rendering";
+            loading = false;
         }
 
         void Render()
         {
             textDisplay.Left = pictureDisplay.Right;
-            Size size = TextRenderer.MeasureText(text, textDisplay.Font);
+            Size size = TextRenderer.MeasureText(text, textDisplay.Font, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
             textDisplay.Size = size + new Size(5, 5);
-
-            pictureDisplay.Image = (Bitmap)bmp.Clone();
             textDisplay.Text = text;
+        }
+
+        private void ButtonLoad_Click(object sender, EventArgs e)
+        {
+            if (loading)
+                return;
+
+            if (float.TryParse(textFont.Text, out float size))
+            {
+                drawingFont = new Font(drawingFont.FontFamily, size);
+                textDisplay.Font = drawingFont;
+                LoadChars();
+            }
+            else
+                MessageBox.Show("Could not parse \"" + textFont.Text + "\"");
+        }
+
+        private void LoadChars()
+        {
+            //setup
+            stopwatch.Restart();
+            labelProgress.Text = "Loading char bmps";
+            loading = true;
+            progressBar1.Maximum = charMax;
+
+            //setup for drawing
+            textFont.Text = drawingFont.Size.ToString();
+            targetSize = TextRenderer.MeasureText("A", drawingFont, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
+            charBmp = new Bitmap(targetSize.Width, targetSize.Height);
+            charG = Graphics.FromImage(charBmp);
+            charWidth = targetSize.Width - TextRenderer.MeasureText("", drawingFont, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix).Width;
+
+            //load char set
+            for (char i = (char)charMin; i < charMax; i++)
+            {
+                Size t = TextRenderer.MeasureText(i.ToString(), drawingFont, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
+                if (t == targetSize)
+                {
+                    chars[i] = new byte[charBmp.Width, charBmp.Height];
+
+                    charG.Clear(Color.White);
+                    charG.DrawString(i.ToString(), drawingFont, Brushes.Black, Point.Empty);
+                    for (int x = 0; x < targetSize.Width; x++)
+                        for (int y = 0; y < targetSize.Height; y++)
+                            chars[i][x, y] = (byte)(charBmp.GetPixel(x, y).GetBrightness() * 255);
+
+                    if (stopwatch.ElapsedMilliseconds > 1000)
+                    {
+                        progressBar1.Value = i;
+                        Application.DoEvents();
+                        stopwatch.Restart();
+                    }
+                }
+                else
+                    chars[i] = null;
+            }
+            progressBar1.Value = charMax;
+            labelProgress.Text = "Done loading";
+            loading = false;
         }
     }
 }

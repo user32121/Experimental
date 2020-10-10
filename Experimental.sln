@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProceduralPathways", "Proce
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrainGeneration", "TerrainGeneration\TerrainGeneration.csproj", "{4957E680-A038-422B-87F7-C6D711598C18}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HyperbolicRender", "HyperbolicRender\HyperbolicRender.csproj", "{D95FC7ED-591A-4E7B-9072-73F75E168E87}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ColorChannelSwap", "ColorChannelSwap\ColorChannelSwap.csproj", "{9F35196E-E79F-44D1-8AFB-056C2512209A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +73,14 @@ Global
 		{4957E680-A038-422B-87F7-C6D711598C18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4957E680-A038-422B-87F7-C6D711598C18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4957E680-A038-422B-87F7-C6D711598C18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D95FC7ED-591A-4E7B-9072-73F75E168E87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D95FC7ED-591A-4E7B-9072-73F75E168E87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D95FC7ED-591A-4E7B-9072-73F75E168E87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D95FC7ED-591A-4E7B-9072-73F75E168E87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F35196E-E79F-44D1-8AFB-056C2512209A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F35196E-E79F-44D1-8AFB-056C2512209A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F35196E-E79F-44D1-8AFB-056C2512209A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F35196E-E79F-44D1-8AFB-056C2512209A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

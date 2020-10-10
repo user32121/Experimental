@@ -249,7 +249,7 @@ namespace ProceduralPathways
                 tile = new Tile();
                 for (int i = 0; i < line.Length; i++)
                 {
-                    if (line[i].Length < 2)
+                    if (line[i].Length < 2 || line[i].Substring(0, 2) == "//")
                         goto SKIP;
                     switch (line[i].Substring(0, 2))
                     {
