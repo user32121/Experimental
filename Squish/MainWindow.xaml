@@ -1,0 +1,16 @@
+﻿<Window x:Class="Squish.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Squish"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
+    <Grid>
+        <Slider x:Name="slider" HorizontalAlignment="Center" Margin="0,200,0,0" VerticalAlignment="Center" Width="500" ValueChanged="slider_ValueChanged" Minimum="-10"/>
+        <Button x:Name="button" Content="Squish" HorizontalAlignment="Center" Margin="0,-200,0,0" VerticalAlignment="Center" Width="75" Click="button_Click"/>
+        <Image x:Name="image" HorizontalAlignment="Center" Height="100" Margin="-200,0,0,160.667" Width="100" Source="liquidCat.jpg" Stretch="Fill" VerticalAlignment="Bottom"/>
+        <Image x:Name="image2" HorizontalAlignment="Center" Height="100" Margin="200,0,0,0" Width="100" Source="liquidCat.jpg" Stretch="Fill" VerticalAlignment="Center"/>
+
+    </Grid>
+</Window>

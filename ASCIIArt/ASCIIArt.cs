@@ -20,10 +20,8 @@ namespace ASCIIArt
         bool loading;
 
         //chars
-        byte[][,] chars = new byte[charMax][,];
+        int[][,] chars = new int[charMax][,];
         Font drawingFont;
-        Bitmap charBmp;
-        Graphics charG;
         const int charMin = 32;
         const int charMax = 256;
         Size targetSize;
@@ -32,6 +30,12 @@ namespace ASCIIArt
         //image
         Bitmap bmp;
         string text;
+
+        //downscaling
+        private int charScaleX;
+        private int charScaleY;
+        private int[,] pixelScaleCount = new int[4, 4];
+        readonly Rectangle rect4x4 = new Rectangle(0, 0, 4, 4);
 
         public ASCIIArt()
         {
@@ -71,6 +75,8 @@ namespace ASCIIArt
 
             //convert image to text
             text = "";
+            Bitmap bmpSml = new Bitmap(4, 4);
+            Graphics GSml = Graphics.FromImage(bmpSml);
             progressBar1.Maximum = bmp.Height;
             for (int y = 0; y + targetSize.Height < bmp.Height; y += targetSize.Height)
             {
@@ -80,16 +86,18 @@ namespace ASCIIArt
                     int bestScore = int.MaxValue;  //lower score is better
                     int score, dist;
 
+                    GSml.DrawImage(bmp, rect4x4, new Rectangle(x, y, targetSize.Width, targetSize.Height), GraphicsUnit.Pixel);
+
                     for (int i = charMin; i < charMax; i++)
                     {
                         if (chars[i] == null)
                             continue;
 
                         score = 0;
-                        for (int x2 = 0; x2 < targetSize.Width; x2++)
-                            for (int y2 = 0; y2 < targetSize.Height; y2++)
+                        for (int x2 = 0; x2 < bmpSml.Width; x2++)
+                            for (int y2 = 0; y2 < bmpSml.Height; y2++)
                             {
-                                dist = chars[i][x2, y2] - (int)(bmp.GetPixel(x + x2, y + y2).GetBrightness() * 256);
+                                dist = chars[i][x2, y2] - (int)(bmpSml.GetPixel(x2, y2).GetBrightness() * 256);
                                 score += dist * dist;
                             }
                         if (score < bestScore)
@@ -150,9 +158,16 @@ namespace ASCIIArt
             //setup for drawing
             textFont.Text = drawingFont.Size.ToString();
             targetSize = TextRenderer.MeasureText("A", drawingFont, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
-            charBmp = new Bitmap(targetSize.Width, targetSize.Height);
-            charG = Graphics.FromImage(charBmp);
+            Bitmap charBmp = new Bitmap(targetSize.Width, targetSize.Height);
+            Graphics charG = Graphics.FromImage(charBmp);
             charWidth = targetSize.Width - TextRenderer.MeasureText("", drawingFont, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix).Width;
+            charScaleX = (int)Math.Ceiling(targetSize.Width / 4.0);
+            charScaleY = (int)Math.Ceiling(targetSize.Height / 4.0);
+
+            //count number of pixels to each scaled pixel
+            for (int x = 0; x < targetSize.Width; x++)
+                for (int y = 0; y < targetSize.Height; y++)
+                    pixelScaleCount[x / charScaleX, y / charScaleY]++;
 
             //load char set
             for (char i = (char)charMin; i < charMax; i++)
@@ -160,13 +175,16 @@ namespace ASCIIArt
                 Size t = TextRenderer.MeasureText(i.ToString(), drawingFont, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
                 if (t == targetSize)
                 {
-                    chars[i] = new byte[charBmp.Width, charBmp.Height];
+                    chars[i] = new int[4, 4];
 
                     charG.Clear(Color.White);
                     charG.DrawString(i.ToString(), drawingFont, Brushes.Black, Point.Empty);
                     for (int x = 0; x < targetSize.Width; x++)
                         for (int y = 0; y < targetSize.Height; y++)
-                            chars[i][x, y] = (byte)(charBmp.GetPixel(x, y).GetBrightness() * 255);
+                            chars[i][x / charScaleX, y / charScaleY] += (byte)(charBmp.GetPixel(x, y).GetBrightness() * 255);
+                    for (int x = 0; x < 4; x++)
+                        for (int y = 0; y < 4; y++)
+                            chars[i][x, y] /= pixelScaleCount[x, y];
 
                     if (stopwatch.ElapsedMilliseconds > 1000)
                     {
