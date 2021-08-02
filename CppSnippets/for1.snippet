@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>For 1</Title>
+      <Author>Jupiter Peng</Author>
+      <Description>For loop starting from a 1 index.</Description>
+      <Shortcut>for1</Shortcut>
+    </Header>
+    <Snippet>
+      <Code Language="CPP">
+        <![CDATA[for ($Type$ $Iter$ = 1; $Iter$ <= $Length$; $Iter$++)
+{
+
+}]]>
+      </Code>
+      <Declarations>
+        <Literal>
+          <ID>Type</ID>
+          <ToolTip>Datatype of iterator</ToolTip>
+          <Default>size_t</Default>
+        </Literal>
+        <Literal>
+          <ID>Iter</ID>
+          <ToolTip>Iterator name</ToolTip>
+          <Default>i</Default>
+        </Literal>
+        <Literal>
+          <ID>Length</ID>
+          <ToolTip>Max length</ToolTip>
+          <Default>length</Default>
+        </Literal>
+      </Declarations>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
