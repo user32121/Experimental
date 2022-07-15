@@ -12,39 +12,47 @@ namespace PerlinNoise
 {
     public struct Vector
     {
-        public double x, y;
-        public Vector(double x, double y)
+        public double angle, magnitude, x, y;
+        public Vector(double angle, double magnitude)
         {
-            this.x = x;
-            this.y = y;
+            this.angle = angle;
+            this.magnitude = magnitude;
+            this.x = magnitude * Math.Cos(angle);
+            this.y = magnitude * Math.Sin(angle);
+        }
+        public void setAngle(double a)
+        {
+            angle = a;
+            this.x = magnitude * Math.Cos(angle);
+            this.y = magnitude * Math.Sin(angle);
         }
     }
 
     public partial class Form1 : Form
     {
+        Bitmap bmp = new Bitmap(400, 400);
+        const int w = 15, h = 15;
+        Vector[,] vecs = new Vector[w + 1, h + 1];
+        Random rng = new Random();
+
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void buttonGen_Click(object sender, EventArgs e)
+        private void generateNoise(bool randomizeVecs)
         {
             //variables
-            Random rng = new Random();
-            int w = 10, h = 10;
-            Vector[,] vecs = new Vector[w + 1, h + 1];
-            Bitmap bmp = new Bitmap(400, 400);
             double scaleX = bmp.Width / w;
             double scaleY = bmp.Height / h;
 
             //grid definition
-            for (int i = 0; i <= w; i++)
-                for (int j = 0; j <= h; j++)
-                {
-                    double t = rng.NextDouble() * Math.PI * 2;
-                    vecs[i, j] = new Vector(Math.Cos(t), Math.Sin(t));
-                }
-
+            if (randomizeVecs)
+                for (int i = 0; i <= w; i++)
+                    for (int j = 0; j <= h; j++)
+                    {
+                        vecs[i, j] = new Vector(rng.NextDouble() * Math.PI * 2, 1);
+                    }
 
             //iterate over pixels
             for (int x = 0; x < bmp.Width; x++)
@@ -85,17 +93,41 @@ namespace PerlinNoise
                     //double inter1 = (dotTR - dotTL) * distL + dotTL;
                     //double inter2 = (dotBR - dotBL) * distL + dotBL;
                     //double interFinal = (inter2 - inter1) * distT + inter1;
-                    //bicubic
+                    //bicubic    (a1 - a0) * (3.0 - w * 2.0) * w * w + a0;
+                    //
+                    //smoother bicubic
                     double inter1 = (dotTR - dotTL) * ((distL * (distL * 6.0 - 15.0) + 10.0) * distL * distL * distL) + dotTL;
                     double inter2 = (dotBR - dotBL) * ((distL * (distL * 6.0 - 15.0) + 10.0) * distL * distL * distL) + dotBL;
-                    double interFinal = (inter2 - inter1) * ((distT * (distT * 6.0 - 15.0) + 10.0) * distT * distT * distT) + inter1;
+                    double inter3 = (inter2 - inter1) * ((distT * (distT * 6.0 - 15.0) + 10.0) * distT * distT * distT) + inter1;
 
                     //scale
-                    int scaled = (int)((interFinal + 1) * 128);
+                    int scaled = Math.Min(Math.Max((int)((inter3 + 1) * 128), 0), 255);
                     bmp.SetPixel(x, y, Color.FromArgb(scaled, scaled, scaled));
                 }
 
             pictureBox1.Image = bmp;
+        }
+
+        private void buttonGen_Click(object sender, EventArgs e)
+        {
+            generateNoise(true);
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            timer1.Enabled = checkBox1.Checked;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            //move vectors
+            for (int i = 0; i <= w; i++)
+                for (int j = 0; j <= h; j++)
+                {
+                    vecs[i, j].setAngle(vecs[i, j].angle + 0.1);
+                }
+
+            generateNoise(false);
         }
     }
 }
