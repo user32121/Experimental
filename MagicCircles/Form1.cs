@@ -4,8 +4,11 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,6 +18,12 @@ namespace MagicCircles
     public partial class Form1 : Form
     {
         Random rng = new Random();
+
+        CircleData circleData;
+        RuneData runeData;
+        bool displayingCircle;
+
+        bool addedTime;
 
         public Form1()
         {
@@ -36,23 +45,9 @@ namespace MagicCircles
             GenerateCircle();
         }
 
-        private readonly float[] threePoints = new float[] { 0.2f, 0.5f, 0.8f };
-        private readonly float[] fourPoints = new float[] { 0.2f, 0.4f, 0.6f, 0.8f };
-        enum LINE_TYPE
+        private Bitmap GenerateRune(int thickness, bool display, RuneData sourceData = null)
         {
-            STRAIGHT,
-            SPLINE,
-            BEZIER,
-            ARC,
-        }
-        private readonly LINE_TYPE[] availableLineTypes = new LINE_TYPE[]
-        {
-            LINE_TYPE.STRAIGHT,
-            LINE_TYPE.SPLINE,
-            LINE_TYPE.BEZIER,
-        };
-        private Bitmap GenerateRune(int thickness, bool display)
-        {
+            runeData = sourceData ?? new RuneData();
             Bitmap bmp = new Bitmap(50, 100);
             Graphics g = Graphics.FromImage(bmp);
 
@@ -66,11 +61,29 @@ namespace MagicCircles
 
             Pen pen = (Pen)Pens.Black.Clone();
             pen.Width = thickness;
-            for (int i = 0; i < 5; i++)
+            const int numStrokes = 5;
+            if (sourceData == null)
             {
-                PointF p1 = runePoints[rng.Next(runePoints.Count)].Scale(bmp.Size);
-                PointF p2 = runePoints[rng.Next(runePoints.Count)].Scale(bmp.Size);
-                switch (availableLineTypes[rng.Next(availableLineTypes.Length)])
+                runeData.strokes = new RuneStroke[numStrokes];
+            }
+            for (int i = 0; i < runeData.strokes.Length; i++)
+            {
+                PointF p1, p2;
+                int variant;
+                if (sourceData == null)
+                {
+                    runeData.strokes[i].start = p1 = runePoints[rng.Next(runePoints.Count)].Scale(bmp.Size);
+                    runeData.strokes[i].end = p2 = runePoints[rng.Next(runePoints.Count)].Scale(bmp.Size);
+                    runeData.strokes[i].type = availableLineTypes[rng.Next(availableLineTypes.Length)];
+                    runeData.strokes[i].variant = variant = rng.Next(2);
+                }
+                else
+                {
+                    p1 = runeData.strokes[i].start;
+                    p2 = runeData.strokes[i].end;
+                    variant = runeData.strokes[i].variant;
+                }
+                switch (runeData.strokes[i].type)
                 {
                     case LINE_TYPE.STRAIGHT:
                         {
@@ -79,9 +92,8 @@ namespace MagicCircles
                         }
                     case LINE_TYPE.SPLINE:
                         {
-                            bool b1 = rng.NextDouble() < 0.5;
                             PointF p3;
-                            if (b1)
+                            if (variant == 0)
                                 p3 = new PointF(p1.X, p2.Y);
                             else
                                 p3 = new PointF(p2.X, p1.Y);
@@ -91,9 +103,8 @@ namespace MagicCircles
                         }
                     case LINE_TYPE.BEZIER:
                         {
-                            bool b1 = rng.NextDouble() < 0.5;
                             PointF p3, p4;
-                            if (b1)
+                            if (variant == 0)
                             {
                                 p3 = new PointF(p1.X, (p1.Y + p2.Y) / 2);
                                 p4 = new PointF(p2.X, (p1.Y + p2.Y) / 2);
@@ -112,71 +123,97 @@ namespace MagicCircles
             }
 
             if (display)
+            {
+                pictureBox1.Image?.Dispose();
                 pictureBox1.Image = bmp;
+                displayingCircle = false;
+            }
+            g.Dispose();
             return bmp;
         }
 
-        enum LAYER_PATTERN
+        private void GenerateCircle(CircleData sourceData = null)
         {
-            DIAGONALS,
-            DOUBLE_DIAGONALS,
-            RUNES,
-            POLYGONS,
-            CIRCLES,
-            CUSTOM,
-        }
-        private readonly LAYER_PATTERN[] availablePatterns = new LAYER_PATTERN[]
-        {
-            LAYER_PATTERN.DIAGONALS,
-            LAYER_PATTERN.DOUBLE_DIAGONALS,
-            LAYER_PATTERN.RUNES,
-        };
-        enum LAYER_BORDER
-        {
-            SOLID,
-            DASHED,
-            SPIKES,
-            CROSSED,
-        }
-        private readonly LAYER_BORDER[] availableBorders = new LAYER_BORDER[]
-        {
-            LAYER_BORDER.SOLID,
-            LAYER_BORDER.DASHED,
-            LAYER_BORDER.SPIKES,
-            LAYER_BORDER.CROSSED,
-        };
-        private void GenerateCircle()
-        {
+            circleData = sourceData ?? new CircleData();
             Bitmap bmp = new Bitmap(512, 512);
             Graphics g = Graphics.FromImage(bmp);
-            SizeF center = new SizeF(bmp.Width / 2, bmp.Height / 2);
+            SizeF center = new SizeF(bmp.Width / 2 - 0.5f, bmp.Height / 2 - 0.5f);
 
             //generation parameters
-            int minRadius = rng.Next((bmp.Width / 2) * 4 / 5);
-            int layers = rng.Next(2, Math.Max(2, (bmp.Width / 2 - minRadius) * 10 / (bmp.Width / 2)));
-            float[] layerSizes = new float[layers];
-            layerSizes[0] = 0;
-            //distribute random thicknesses, then scale to fit the system
-            float totalThickness = 0;
-            for (int i = 0; i < layers; i++)
-                totalThickness += (layerSizes[i] = rng.Next(1, 11));
-            for (int i = 0; i < layers; i++)
-                layerSizes[i] = layerSizes[i] / totalThickness * (bmp.Width / 2 - minRadius);  //[0,arbitrary] -> [0,1] -> [minRadius, width/2]
-
-            float curRadius = minRadius;
-            for (int i = 0; i < layers; i++)
+            if (sourceData == null)
             {
-                LAYER_PATTERN pattern = availablePatterns[rng.Next(availablePatterns.Length)];
-                switch (pattern)
+                circleData.minRadius = rng.Next(bmp.Width / 2 * 4 / 5);
+                circleData.layers = rng.Next(2, Math.Max(2, (bmp.Width / 2 - circleData.minRadius) * 10 / (bmp.Width / 2)));
+                circleData.layerSizes = new float[circleData.layers];
+                circleData.layerSizes[0] = 0;
+                //distribute random thicknesses, then scale to fit the system
+                float totalThickness = 0;
+                for (int i = 0; i < circleData.layers; i++)
+                    totalThickness += circleData.layerSizes[i] = rng.Next(1, 11);
+                for (int i = 0; i < circleData.layers; i++)
+                    circleData.layerSizes[i] = circleData.layerSizes[i] / totalThickness * (bmp.Width / 2 - circleData.minRadius);  //[0,arbitrary] -> [0,1] -> [minRadius, width/2]
+                circleData.patterns = new LAYER_PATTERN[circleData.layers];
+                for (int i = 0; i < circleData.layers; i++)
+                    circleData.patterns[i] = availablePatterns[rng.Next(availablePatterns.Length)];
+            }
+
+            //adjust thicknesses to fit
+            for (int i = 0; i < circleData.layers; i++)
+            {
+                switch (circleData.patterns[i])
+                {
+                    case LAYER_PATTERN.RUNES:
+                        if (circleData.layerSizes[i] < 10)
+                        {
+                            circleData.layerSizes[i] += 10;
+                            if (i == 0)
+                                circleData.layerSizes[i + 1] -= 10;
+                            else
+                                circleData.layerSizes[i - 1] -= 10;
+                        }
+                        else if (circleData.layerSizes[i] > 100)
+                        {
+                            circleData.layerSizes[i] -= 50;
+                            if (i == 0)
+                                circleData.layerSizes[i + 1] += 50;
+                            else
+                                circleData.layerSizes[i - 1] += 50;
+                        }
+                        break;
+                    case LAYER_PATTERN.POLYGONS:
+                        break;
+                    case LAYER_PATTERN.SMALL_CIRCLES:
+                        break;
+                }
+            }
+            if (sourceData == null)
+            {
+                circleData.patternParams = new PatternParam[circleData.layers];
+                circleData.runes = new List<RuneData>();
+                circleData.borders = new LAYER_BORDER[circleData.layers];
+                circleData.borderParams = new BorderParam[circleData.layers];
+            }
+
+            float curRadius = circleData.minRadius;
+            for (int i = 0; i < circleData.layers; i++)
+            {
+                switch (circleData.patterns[i])
                 {
                     case LAYER_PATTERN.DIAGONALS:
                         {
-                            bool flipped = rng.NextDouble() < 0.5f;
-                            double delta = Math.PI * 2 / rng.Next(10, 30);
-                            for (double theta = 0; theta < Math.PI * 2; theta += 0.1)
+                            if (!(sourceData?.patternParams[i] is DiagonalsPatternParam dpp))
                             {
+                                dpp = new DiagonalsPatternParam();
+                                dpp.flipped = rng.NextDouble() < 0.5f;
+                                dpp.delta = Math.PI * 2 / rng.Next(10, 200);
+                                dpp.count = rng.Next(30, 200);
+                            }
+                            circleData.patternParams[i] = dpp;
+                            for (int j = 0; j < dpp.count; j++)
+                            {
+                                double theta = j / (double)dpp.count * Math.PI * 2;
                                 PointF p1 = PointFFromRadial(theta, curRadius);
-                                PointF p2 = PointFFromRadial(theta + (flipped ? -0.1 : 0.1), curRadius + layerSizes[i]);
+                                PointF p2 = PointFFromRadial(theta + (dpp.flipped ? -dpp.delta : dpp.delta), curRadius + circleData.layerSizes[i]);
                                 p1 += center;
                                 p2 += center;
                                 g.DrawLine(Pens.Black, p1, p2);
@@ -185,12 +222,19 @@ namespace MagicCircles
                         }
                     case LAYER_PATTERN.DOUBLE_DIAGONALS:
                         {
-                            double delta = Math.PI * 2 / rng.Next(10, 30);
-                            for (double theta = 0; theta < Math.PI * 2; theta += 0.1)
+                            if (!(sourceData?.patternParams[i] is DoubleDiagonalsPatternParam ddpp))
                             {
+                                ddpp = new DoubleDiagonalsPatternParam();
+                                ddpp.delta = Math.PI * 2 / rng.Next(10, 200);
+                                ddpp.count = rng.Next(30, 200);
+                            }
+                            circleData.patternParams[i] = ddpp;
+                            for (int j = 0; j < ddpp.count; j++)
+                            {
+                                double theta = j / (double)ddpp.count * Math.PI * 2;
                                 PointF p1 = PointFFromRadial(theta, curRadius);
-                                PointF p2 = PointFFromRadial(theta + 0.1, curRadius + layerSizes[i]);
-                                PointF p3 = PointFFromRadial(theta - 0.1, curRadius + layerSizes[i]);
+                                PointF p2 = PointFFromRadial(theta + ddpp.delta, curRadius + circleData.layerSizes[i]);
+                                PointF p3 = PointFFromRadial(theta - ddpp.delta, curRadius + circleData.layerSizes[i]);
                                 p1 += center;
                                 p2 += center;
                                 p3 += center;
@@ -201,17 +245,32 @@ namespace MagicCircles
                         }
                     case LAYER_PATTERN.RUNES:
                         {
-                            if (layerSizes[i] == 0)
-                                break;
-
-                            int count = rng.Next(20, 40);
-                            for (int j = 0; j < count; j++)
+                            if (!(sourceData?.patternParams[i] is RunesPatternParam rpp))
                             {
-                                float theta = (float)(j * Math.PI * 2 / count);
+                                rpp = new RunesPatternParam();
+                                rpp.count = rng.Next(20, 40);
+                                rpp.runeIndices = new int[rpp.count];
+                            }
+                            circleData.patternParams[i] = rpp;
+                            for (int j = 0; j < rpp.count; j++)
+                            {
+                                float theta = (float)(j * Math.PI * 2 / rpp.count);
                                 PointF pos = PointFFromRadial(theta, curRadius);
-                                Bitmap runeBmp = GenerateRune(3, false);
+                                Bitmap runeBmp;
+                                if (sourceData == null)
+                                {
+                                    runeBmp = GenerateRune(3, false);
+                                    circleData.runes.Add(runeData);
+                                    rpp.runeIndices[j] = circleData.runes.Count - 1;
+                                }
+                                else
+                                {
+                                    runeBmp = GenerateRune(3, false, circleData.runes[rpp.runeIndices[j]]);
+                                    circleData.runes[rpp.runeIndices[j]] = runeData;
+                                }
+
                                 g.ResetTransform();
-                                float scale = layerSizes[i] / runeBmp.Height;
+                                float scale = circleData.layerSizes[i] / runeBmp.Height;
                                 PointF offset = PointFFromRadial(theta + Math.PI / 2, runeBmp.Width / 2).Scale(scale);  //create an offset to align the center of the card to the tangent of the circle
                                 g.ScaleTransform(scale, scale, MatrixOrder.Append);
                                 g.RotateTransform((float)(theta / Math.PI * 180 - 90), MatrixOrder.Append);
@@ -221,42 +280,86 @@ namespace MagicCircles
                             }
                             break;
                         }
-                    default:
-                        throw new NotImplementedException(pattern + " is not implemented");
-                }
-                curRadius += layerSizes[i];
+                    case LAYER_PATTERN.POLYGONS:
+                        {
+                            if (!(sourceData?.patternParams[i] is PolygonsPatternParam ppp))
+                            {
+                                ppp = new PolygonsPatternParam();
+                                ppp.sides = rng.Next(3, 10);
+                                ppp.isWinding = rng.NextDouble() < 0.5;
+                                ppp.copies = ppp.isWinding ? 1 : rng.Next(2, 4);
+                                ppp.winding = ppp.isWinding ? rng.Next(2, ppp.sides) : 1;  //constructs stars
+                            }
+                            circleData.patternParams[i] = ppp;
 
-                LAYER_BORDER border = availableBorders[rng.Next(availableBorders.Length)];
-                switch (border)
+                            PointF prevPos = new PointF();
+                            for (int j = 0; j < ppp.copies; j++)
+                            {
+                                double offset = j / (double)ppp.copies;
+                                for (int k = 0; k <= ppp.sides; k++)
+                                {
+                                    PointF pos = PointFFromRadial((k + offset) * 2 * Math.PI / ppp.sides * ppp.winding, curRadius + circleData.layerSizes[i]);
+                                    pos += center;
+                                    if (k != 0)
+                                        g.DrawLine(Pens.Black, pos, prevPos);
+                                    prevPos = pos;
+                                }
+                            }
+                            break;
+                        }
+                    case LAYER_PATTERN.EMPTY:
+                        {
+                            circleData.patternParams[i] = new EmptyPatternParam();
+                            break;
+                        }
+                    default:
+                        throw new NotImplementedException(circleData.patterns[i] + " is not implemented");
+                }
+                curRadius += circleData.layerSizes[i];
+
+                if (sourceData == null)
+                    circleData.borders[i] = availableBorders[rng.Next(availableBorders.Length)];
+                switch (circleData.borders[i])
                 {
                     case LAYER_BORDER.SOLID:
                         {
+                            circleData.borderParams[i] = new SolidBorderParam();
                             g.DrawEllipse(Pens.Black, center.Width - curRadius, center.Height - curRadius, curRadius * 2, curRadius * 2);
                             break;
                         }
                     case LAYER_BORDER.DASHED:
                         {
-                            int count = rng.Next(2, 15) * 2;
-                            float thetaOffset = rng.Next(360);
-                            float dashLengthModifier = (float)rng.NextDouble() * 2;
-                            for (int j = 0; j < count; j++)
+                            if (!(sourceData?.borderParams[i] is DashedBorderParam dbp))
+                            {
+                                dbp = new DashedBorderParam();
+                                dbp.count = rng.Next(2, 15) * 2;
+                                dbp.thetaOffset = rng.Next(360);
+                                dbp.dashLengthModifier = (float)rng.NextDouble() * 2;
+                            }
+                            circleData.borderParams[i] = dbp;
+                            for (int j = 0; j < dbp.count; j++)
                                 if (j % 2 == 0)
-                                    g.DrawArc(Pens.Black, center.Width - curRadius, center.Height - curRadius, curRadius * 2, curRadius * 2, j * 360 / count + thetaOffset, dashLengthModifier * 360 / count);
+                                    g.DrawArc(Pens.Black, center.Width - curRadius, center.Height - curRadius, curRadius * 2, curRadius * 2, j * 360 / dbp.count + dbp.thetaOffset, dbp.dashLengthModifier * 360 / dbp.count);
                             break;
                         }
                     case LAYER_BORDER.SPIKES:
                         {
                             g.DrawEllipse(Pens.Black, center.Width - curRadius, center.Height - curRadius, curRadius * 2, curRadius * 2);
-                            int count = rng.Next(10, 30);
-                            double spikeWidth = rng.NextDouble() / 10;  //in radians
-                            int spikeLength = rng.Next((int)layerSizes[i] / 2);
-                            for (int j = 0; j < count; j++)
+                            if (!(sourceData?.borderParams[i] is SpikesBorderParam sbp))
                             {
-                                double theta = j * Math.PI * 2 / count;
+                                sbp = new SpikesBorderParam();
+                                sbp.count = rng.Next(10, 30);
+                                sbp.spikeWidth = rng.NextDouble() / 10;  //in radians
+                                sbp.spikeLength = rng.Next((int)circleData.layerSizes[i] / 2);
+                            }
+                            circleData.borderParams[i] = sbp;
+                            for (int j = 0; j < sbp.count; j++)
+                            {
+                                double theta = j * Math.PI * 2 / sbp.count;
                                 PointF p1 = PointFFromRadial(theta, curRadius);
-                                PointF p2 = PointFFromRadial(theta + spikeWidth, curRadius);
-                                PointF p3 = PointFFromRadial(theta + spikeWidth / 2, curRadius + spikeLength);
-                                PointF p4 = PointFFromRadial(theta + spikeWidth / 2, curRadius - spikeLength);
+                                PointF p2 = PointFFromRadial(theta + sbp.spikeWidth, curRadius);
+                                PointF p3 = PointFFromRadial(theta + sbp.spikeWidth / 2, curRadius + sbp.spikeLength);
+                                PointF p4 = PointFFromRadial(theta + sbp.spikeWidth / 2, curRadius - sbp.spikeLength);
                                 p1 += center;
                                 p2 += center;
                                 p3 += center;
@@ -268,17 +371,24 @@ namespace MagicCircles
                     case LAYER_BORDER.CROSSED:
                         {
                             g.DrawEllipse(Pens.Black, center.Width - curRadius, center.Height - curRadius, curRadius * 2, curRadius * 2);
-                            int count = rng.Next(10, 30);
-                            int hashLength = rng.Next((int)layerSizes[i] / 2);
-                            double hashWidth = hashLength / 5;
-                            for (int j = 0; j < count; j++)
+                            if (!(sourceData?.borderParams[i] is CrossedBorderParam cbp))
                             {
-                                double theta = j * Math.PI * 2 / count;
-                                PointF p1 = PointFFromRadial(theta, curRadius - hashLength);
-                                PointF p2 = PointFFromRadial(theta, curRadius + hashLength);
+                                cbp = new CrossedBorderParam();
+                                cbp.count = rng.Next(10, 30);
+                                cbp.hashLength = rng.Next((int)circleData.layerSizes[i] / 2);
+                                cbp.hashWidth = cbp.hashLength / 5;
+                                cbp.isInner = rng.NextDouble() < 0.5;
+                            }
+                            circleData.borderParams[i] = cbp;
+
+                            for (int j = 0; j < cbp.count; j++)
+                            {
+                                double theta = j * Math.PI * 2 / cbp.count;
+                                PointF p1 = PointFFromRadial(theta, curRadius - (cbp.isInner ? cbp.hashLength : 0));
+                                PointF p2 = PointFFromRadial(theta, curRadius + (cbp.isInner ? 0 : cbp.hashLength));
                                 p1 += center;
                                 p2 += center;
-                                PointF t = PointFFromRadial(theta + Math.PI / 2, hashWidth / 2);
+                                PointF t = PointFFromRadial(theta + Math.PI / 2, cbp.hashWidth / 2);
                                 SizeF deltaW = new SizeF(t.X, t.Y);
                                 PointF p3 = p1 + deltaW;
                                 PointF p4 = p1 - deltaW;
@@ -293,7 +403,11 @@ namespace MagicCircles
                 }
             }
 
+            pictureBox1.Image?.Dispose();
             pictureBox1.Image = bmp;
+            displayingCircle = true;
+            addedTime = false;
+            g.Dispose();
         }
 
         private PointF PointFFromRadial(double angle, double magnitude)
@@ -301,7 +415,7 @@ namespace MagicCircles
             return new PointF((float)Math.Cos(angle), (float)Math.Sin(angle)).Scale((float)magnitude);
         }
 
-        private void buttonSave_Click(object sender, EventArgs e)
+        private void ButtonSave_Click(object sender, EventArgs e)
         {
             Directory.CreateDirectory("output");
             string[] files = Directory.GetFiles("output");
@@ -315,6 +429,235 @@ namespace MagicCircles
             } while (files.Contains(filename));
 
             pictureBox1.Image.Save(filename);
+        }
+
+        private void Button_effect_Click(object sender, EventArgs e)
+        {
+            if (pictureBox1.Image == null)
+                return;
+
+            Bitmap bmp = new Bitmap(pictureBox1.Image.Width, pictureBox1.Image.Height);
+            Image sourceBmp = pictureBox1.Image;
+            ImageAttributes imgAttr = new ImageAttributes();
+            Graphics g = Graphics.FromImage(bmp);
+            g.Clear(Color.Black);
+
+            Color col;
+            if (displayingCircle && circleData?.effectColor != null)
+                col = circleData.effectColor.Value;
+            else
+                col = Color.FromKnownColor((KnownColor)rng.Next((int)KnownColor.AliceBlue, (int)KnownColor.YellowGreen));
+            float R = col.R / (float)255;
+            float G = col.G / (float)255;
+            float B = col.B / (float)255;
+            if (displayingCircle)
+                circleData.effectColor = col;
+
+            //invert + color (f(x) = -R(x + 1))
+            ColorMatrix colMatrix = new ColorMatrix(new float[][]
+            {
+                new float[]{-R,0,0,0,0},
+                new float[]{0,-G,0,0,0},
+                new float[]{0,0,-B,0,0},
+                new float[]{0,0,0,1,0},
+                new float[]{R,G,B,0,1},
+            });
+            imgAttr.SetColorMatrix(colMatrix);
+
+            //blur
+
+            const int radius = 10;
+            const int iterations = 3;
+            colMatrix.Matrix33 = 1;
+            imgAttr.SetColorMatrix(colMatrix);
+            for (int x = -1; x <= 2; x++)
+                for (int y = -1; y <= 2; y++)
+                    g.DrawImage(sourceBmp, new Rectangle(new Point(x, y), bmp.Size), 0, 0, sourceBmp.Width, sourceBmp.Height, GraphicsUnit.Pixel, imgAttr);
+            unsafe
+            {
+                BitmapData bmpData = bmp.LockBits(new Rectangle(Point.Empty, bmp.Size), ImageLockMode.ReadWrite, bmp.PixelFormat);
+                Color[,] buffer = new Color[bmpData.Width, bmpData.Height];
+                
+                for (int i = 0; i < iterations; i++)
+                {
+                    //horizontal pass
+                    int totalR, totalG, totalB, totalA, count;
+                    Color pixelCol;
+                    int* scan0 = (int*)bmpData.Scan0;
+                    for (int x = 0; x < bmpData.Width; x++)
+                        for (int y = 0; y < bmpData.Height; y++)
+                        {
+                            totalR = totalG = totalB = totalA = count = 0;
+                            for (int x2 = Math.Max(x - radius, 0); x2 <= Math.Min(x + radius, bmpData.Width - 1); x2++)
+                            {
+                                pixelCol = Color.FromArgb(*(scan0 + (y * bmpData.Stride / sizeof(int)) + x2));
+                                totalR += pixelCol.R;
+                                totalG += pixelCol.G;
+                                totalB += pixelCol.B;
+                                totalA += pixelCol.A;
+                                count++;
+                            }
+                            buffer[x, y] = Color.FromArgb(totalA / count, totalR / count, totalG / count, totalB / count);
+                        }
+
+                    //vertical pass
+                    for (int x = 0; x < bmpData.Width; x++)
+                        for (int y = 0; y < bmpData.Height; y++)
+                        {
+                            totalR = totalG = totalB = totalA = count = 0;
+                            for (int y2 = Math.Max(y - radius, 0); y2 <= Math.Min(y + radius, bmpData.Height - 1); y2++)
+                            {
+                                pixelCol = buffer[x, y2];
+                                totalR += pixelCol.R;
+                                totalG += pixelCol.G;
+                                totalB += pixelCol.B;
+                                totalA += pixelCol.A;
+                                count++;
+                            }
+                            *(scan0 + (y * bmpData.Stride / sizeof(int)) + x) = Color.FromArgb(totalA / count, totalR / count, totalG / count, totalB / count).ToArgb();
+                        }
+                }
+
+                bmp.UnlockBits(bmpData);
+            }
+
+            //full alpha
+            colMatrix.Matrix33 = 1;
+            imgAttr.SetColorMatrix(colMatrix);
+
+            //main
+            g.DrawImage(sourceBmp, new Rectangle(Point.Empty, bmp.Size), 0, 0, sourceBmp.Width, sourceBmp.Height, GraphicsUnit.Pixel, imgAttr);
+
+            pictureBox1.Image?.Dispose();
+            pictureBox1.Image = bmp;
+            g.Dispose();
+        }
+
+        private void ButtonImportCircle_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                Stream stream = ofd.OpenFile();
+
+                DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(CircleData));
+                try
+                {
+                    circleData = (CircleData)serializer.ReadObject(stream);
+                    GenerateCircle(circleData);
+                }
+                catch (SerializationException)
+                {
+                    MessageBox.Show("Could not read circle data");
+                }
+                stream.Close();
+            }
+        }
+
+        private void ButtonExportCircle_Click(object sender, EventArgs e)
+        {
+            if (!displayingCircle)
+            {
+                MessageBox.Show("Not displaying a circle");
+                return;
+            }
+
+            Directory.CreateDirectory("output");
+            string[] files = Directory.GetFiles("output");
+            int i = 0;
+            string fileBase = "circleData";
+            string filename;
+            do
+            {
+                filename = Path.Combine("output", fileBase + i + ".json");
+                i++;
+            } while (files.Contains(filename));
+
+            FileStream fs = new FileStream(filename, FileMode.Create);
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(CircleData));
+            serializer.WriteObject(fs, circleData);
+
+            fs.Close();
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (!addedTime && e.KeyCode == Keys.T)
+                AddTime();
+        }
+
+        private void AddTime()
+        {
+            if (!displayingCircle)
+                return;
+
+            addedTime = true;
+            Bitmap blade1 = new Bitmap("blade1.png");
+            Bitmap blade2 = new Bitmap("blade2.png");
+
+            Graphics g = Graphics.FromImage(pictureBox1.Image);
+
+            g.ResetTransform();
+            g.RotateTransform(90 + 360f / 16 / 16, MatrixOrder.Append);
+            g.TranslateTransform(pictureBox1.Image.Width / 2, pictureBox1.Image.Height / 2, MatrixOrder.Append);
+            g.DrawImage(blade1, -blade1.Width / 2, -blade1.Height / 2);
+
+            g.ResetTransform();
+            g.RotateTransform(360 / 16, MatrixOrder.Append);
+            g.TranslateTransform(pictureBox1.Image.Width / 2, pictureBox1.Image.Height / 2, MatrixOrder.Append);
+            g.DrawImage(blade2, -blade2.Width / 2, -blade2.Height / 2);
+
+            g.ResetTransform();
+
+            g.Dispose();
+            pictureBox1.Image = pictureBox1.Image;
+        }
+
+        private void ButtonImportRune_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                Stream stream = ofd.OpenFile();
+
+                DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(RuneData));
+                try
+                {
+                    runeData = (RuneData)serializer.ReadObject(stream);
+                    GenerateRune(2, true, runeData);
+                }
+                catch (SerializationException)
+                {
+                    MessageBox.Show("Could not read rune data");
+                }
+                stream.Close();
+            }
+        }
+
+        private void ButtonExportRune_Click(object sender, EventArgs e)
+        {
+            if (displayingCircle)
+            {
+                MessageBox.Show("Not displaying a rune");
+                return;
+            }
+
+            Directory.CreateDirectory("output");
+            string[] files = Directory.GetFiles("output");
+            int i = 0;
+            string fileBase = "runeData";
+            string filename;
+            do
+            {
+                filename = Path.Combine("output", fileBase + i + ".json");
+                i++;
+            } while (files.Contains(filename));
+
+            FileStream fs = new FileStream(filename, FileMode.Create);
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(RuneData));
+            serializer.WriteObject(fs, runeData);
+
+            fs.Close();
         }
     }
 }

@@ -138,7 +138,9 @@ namespace ShapeFill
                     ang -= Math.PI * 2;
                 else if (ang <= -Math.PI)
                     ang += Math.PI * 2;
+#pragma warning disable CS0642 // Possible mistaken empty statement
                 if (Math.Abs(ang) > 1) ;
+#pragma warning restore CS0642 // Possible mistaken empty statement
                 ang /= 2;
 
                 uVec.Normalize();
@@ -211,7 +213,9 @@ namespace ShapeFill
                         a -= Math.PI * 2;
                     else if (a <= -Math.PI)
                         a += Math.PI * 2;
+#pragma warning disable CS0642 // Possible mistaken empty statement
                     if (Math.Abs(a) > 1) ;
+#pragma warning restore CS0642 // Possible mistaken empty statement
                     a /= 2;
 
                     u.Normalize();
