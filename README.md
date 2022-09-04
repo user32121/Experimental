@@ -1,2 +1,1 @@
-# Fondere
-small project that creates psuedo-words
+collection of experimental projects
